@@ -1,11 +1,15 @@
 import {
   GraphQLID,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
 } from "graphql";
-import { clients, projects } from "./sampleData.js";
+// import { clients, projects } from "./sampleData.js";
+import Client from "../models/clients.js";
+import Projects from "../models/project.js"
+
 
 const ClientType = new GraphQLObjectType({
   name: "Client",
@@ -27,9 +31,7 @@ const ProjectType = new GraphQLObjectType({
     client: {
         type: ClientType,
         resolve: (parent, args) => {
-          return clients.find((value) => {
-            return parent.clientId == value.id;
-          });
+         return Client.findById(parent.clientId)
         },
       },
   }),
@@ -43,35 +45,60 @@ const RootQuery = new GraphQLObjectType({
       type: ProjectType,
       args: { id: { type: GraphQLID } },
       resolve: (parent, args) => {
-        return projects.find((value) => {
-          return args.id == value.id;
-        });
+        return Projects.findById(args.id)
       },
     },
     projects: {
       type: new GraphQLList(ProjectType),
       resolve: () => {
-        return projects;
+        return Projects.find();
       },
     },
     clients: {
       type: new GraphQLList(ClientType),
       resolve: (parent, args) => {
-        return clients;
+        return Client.find();
       },
     },
     client: {
       type: ClientType,
       args: { id: { type: GraphQLID } },
       resolve: (parent, args) => {
-        return clients.find((clientObj) => {
-          return clientObj.id === args.id;
-        });
+        return Client.findById(args.id)
       },
     },
   },
 });
 
+
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addClient: {
+      type: ClientType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        phoneNumber: { type: new GraphQLNonNull(GraphQLString) }
+      },
+      async resolve(parent, args) {
+        const client = new Client({
+          name: args.name,
+          email: args.email,
+          phoneNumber: args.phoneNumber
+        });
+
+        try {
+          return await client.save();
+        } catch (error) {
+          throw new Error('Error adding client: ' + error.message);
+        }
+      }
+    }
+  }
+});
+
 export default new GraphQLSchema({
   query: RootQuery,
+  mutation
 });
