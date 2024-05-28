@@ -1,4 +1,5 @@
 import {
+  GraphQLEnumType,
   GraphQLID,
   GraphQLList,
   GraphQLNonNull,
@@ -94,7 +95,78 @@ const mutation = new GraphQLObjectType({
           throw new Error('Error adding client: ' + error.message);
         }
       }
+    },
+    removeClient:{
+      type:ClientType,
+      args:{
+        id:{type:new GraphQLNonNull(GraphQLString)}
+      },
+      async resolve(parent, args) {
+        try {
+          const removedClient = await Client.findByIdAndDelete(args.id);
+          if (!removedClient) {
+            throw new Error('Client not found');
+          }
+          return removedClient;
+        } catch (error) {
+          throw new Error('Error removing client: ' + error.message); 
+        }
+      }
+    },
+    addProject :{
+      type: ProjectType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        description: { type: new GraphQLNonNull(GraphQLString) },
+        status: {
+          type: new GraphQLEnumType({
+            name: "ProjectStatus",
+            values: {
+              new: { value: "Not Started" },
+              progress: { value: "In Progress" },
+              completed: { value: "Completed" },
+            },
+          }),
+          defaultValue: "Not Started",
+        },
+        clientId: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      async resolve(parent, args) {
+        try {
+          const project = new Projects({
+            name: args.name,
+            description: args.description,
+            status: args.status,
+            clientId: args.clientId,
+          });
+    
+          return await project.save();
+        } catch (error) {
+          throw new Error("Error while creating new Project: " + error.message);
+        }
+
+      }
+
+    },
+    removeProject:{
+      type:ProjectType,
+      args:{
+        id:{type:GraphQLID}
+      },
+      async resolve(parent, args) {
+        try {
+          const removedClient = await Projects.findByIdAndDelete(args.id);
+          if (!removedClient) {
+            throw new Error('Client not found');
+          }
+          return removedClient;
+        } catch (error) {
+          throw new Error('Error removing client: ' + error.message); 
+        }
+      }
+
     }
+
   }
 });
 
