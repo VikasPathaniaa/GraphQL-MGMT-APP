@@ -1,0 +1,18 @@
+@media screen and (max-width:767px) {
+    .header .sub_header .logo{
+        /* display: none; */
+    }
+    .header .sub_header .mobile_icon{
+        display: block;
+    }
+}
+
+@media screen and (max-width:639px) {
+  
+}
+
+@media screen and (max-width:575px) {
+    .header .sub_header .logo{
+        display: none;
+    }
+}
