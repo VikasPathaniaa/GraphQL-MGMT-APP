@@ -1,7 +1,9 @@
-import React from 'react';
-import { gql, useQuery } from '@apollo/client';
+import React, { useState } from 'react';
+import { gql, useMutation, useQuery } from '@apollo/client';
 import Spinner from './spinner/Spinner';
-import { BsThreeDots } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
+import { DELETE_CLIENT } from '../mutations/client';
+
 
 
 const Get_Clients = gql`
@@ -15,9 +17,25 @@ clients{
 }
 `
 
-
 const Client = () => {
   const { loading, error, data } = useQuery(Get_Clients)
+  const [id , setId] = useState()
+
+  const [removeClient] = useMutation(DELETE_CLIENT, {
+    variables:{id:id},
+    // refetchQueries:[{query:Get_Clients}]
+    update(cache , {data:{removeClient}}){
+      const {clients} = cache.readQuery({query:Get_Clients}) as any
+
+      cache.writeQuery({
+        query:Get_Clients,
+        data:{clients: clients.filter((item:any)=>{
+          return item.id != removeClient.id
+
+        })}
+      })
+    }
+  })
 
 
   console.log(loading, error, data);
@@ -46,7 +64,10 @@ const Client = () => {
                     <td>{item?.name}</td>
                     <td>{item?.email}</td>
                     <td>{item?.phoneNumber}</td>
-                    <td><BsThreeDots/></td>
+                    <td onClick={()=>{
+                     removeClient({ variables: { id: item.id } })
+                    
+                    }}><MdDelete/></td>
                   </tr>
               )
             })
