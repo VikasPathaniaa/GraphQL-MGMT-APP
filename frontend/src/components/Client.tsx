@@ -2,20 +2,10 @@ import React, { useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import Spinner from './spinner/Spinner';
 import { MdDelete } from "react-icons/md";
-import { DELETE_CLIENT } from '../mutations/client';
+import { DELETE_CLIENT, Get_Clients } from '../mutations/client';
 
 
 
-const Get_Clients = gql`
-query getClients {
-clients{
-  id
-  name
-  email
-  phoneNumber
-}
-}
-`
 
 const Client = () => {
   const { loading, error, data } = useQuery(Get_Clients)
